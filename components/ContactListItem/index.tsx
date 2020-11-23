@@ -1,9 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
-import moment from 'moment';
 import React from 'react';
 import { Image, Text, TouchableWithoutFeedback, View } from 'react-native';
 import { User } from '../../types';
 import styles from './styles';
+import { API, graphqlOperation, Auth } from 'aws-amplify';
+import { createChatRoom, createChatRoomUser } from '../../graphql/mutations';
 
 export type ContactListItemProps = {
   user: User;
@@ -14,7 +15,47 @@ const ContactListItem = (props: ContactListItemProps) => {
 
   const navigation = useNavigation();
 
-  const onClick = () => {};
+  const onClick = async () => {
+    try {
+      const newChatRoomData = await API.graphql(
+        graphqlOperation(createChatRoom, { input: {} }),
+      );
+
+      if (!newChatRoomData.data) {
+        return;
+      }
+
+      const newChatRoom = newChatRoomData.data.createChatRoom;
+
+      await API.graphql(
+        graphqlOperation(createChatRoomUser, {
+          input: {
+            userID: user.id,
+            chatRoomID: newChatRoom.id,
+          },
+        }),
+      );
+
+      const userInfo = await Auth.currentAuthenticatedUser({
+        bypassCache: true,
+      });
+      await API.graphql(
+        graphqlOperation(createChatRoomUser, {
+          input: {
+            userID: userInfo.attributes.sub,
+            chatRoomID: newChatRoom.id,
+          },
+        }),
+      );
+
+      navigation.navigate('ChatRoom', {
+        id: newChatRoom.id,
+        name: 'Hardcoded name',
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={onClick}>
