@@ -1,17 +1,42 @@
 import * as React from 'react';
 import { FlatList, StyleSheet } from 'react-native';
-import ChatListItem from '../components/ChatListItem';
-import NewMessageButton from '../components/NewMessageButton';
 import { View } from '../components/Themed';
-import ChatRooms from '../data/ChatRooms';
+import ChatListItem from '../components/ChatListItem';
+import { API, graphqlOperation, Auth } from 'aws-amplify';
+
+import NewMessageButton from '../components/NewMessageButton';
+import { useEffect, useState } from 'react';
+
+import { getUser } from './queries';
 
 export default function ChatsScreen() {
+  const [chatRooms, setChatRooms] = useState([]);
+
+  useEffect(() => {
+    const fetchChatRooms = async () => {
+      try {
+        const userInfo = await Auth.currentAuthenticatedUser();
+
+        const userData = await API.graphql(
+          graphqlOperation(getUser, {
+            id: userInfo.attributes.sub,
+          }),
+        );
+
+        setChatRooms(userData.data.getUser.chatRoomUsers.items);
+      } catch (e) {
+        console.log('fetchChatRooms error: ' + e);
+      }
+    };
+    fetchChatRooms();
+  }, []);
+
   return (
     <View style={styles.container}>
       <FlatList
         style={{ width: '100%' }}
-        data={ChatRooms}
-        renderItem={({ item }) => <ChatListItem chatRoom={item} />}
+        data={chatRooms}
+        renderItem={({ item }) => <ChatListItem chatRoom={item.chatRoom} />}
         keyExtractor={(item) => item.id}
       />
       <NewMessageButton />
@@ -24,14 +49,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
   },
 });
