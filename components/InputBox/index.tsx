@@ -31,7 +31,7 @@ const InputBox = (props: InputBoxProps) => {
       const userInfo = await Auth.currentAuthenticatedUser({
         bypassCache: true,
       });
-      
+
       setMyUserId(userInfo.attributes.sub);
     };
     fetchUser();
