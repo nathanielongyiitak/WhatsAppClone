@@ -5,7 +5,7 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,14 +15,45 @@ import {
 } from 'react-native';
 import styles from './styles';
 
+import { API, graphqlOperation, Auth } from 'aws-amplify';
+import { createMessage } from '../../graphql/mutations';
+
 export type InputBoxProps = {};
 
 const InputBox = (props: InputBoxProps) => {
   const [message, setMessage] = useState('');
+  const [myUserId, setMyUserId] = useState(null);
+
+  const { chatRoomID } = props;
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userInfo = await Auth.currentAuthenticatedUser({
+        bypassCache: true,
+      });
+      
+      setMyUserId(userInfo.attributes.sub);
+    };
+    fetchUser();
+  }, []);
 
   const onMicrophonePress = () => {};
 
-  const onSendPress = () => {};
+  const onSendPress = async () => {
+    try {
+      await API.graphql(
+        graphqlOperation(createMessage, {
+          input: {
+            content: message,
+            userID: myUserId,
+            chatRoomID,
+          },
+        }),
+      );
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const onPress = () => {
     !message ? onMicrophonePress() : onSendPress();
