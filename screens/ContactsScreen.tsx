@@ -15,7 +15,7 @@ export default function ContactsScreen() {
         const usersData = await API.graphql(graphqlOperation(listUsers));
         setUsers(usersData.data.listUsers.items);
       } catch (e) {
-        console.log('fetchUsers: ' + e);
+        console.log(e);
       }
     };
 

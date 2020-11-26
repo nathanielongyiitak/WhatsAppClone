@@ -21,7 +21,9 @@ const ContactListItem = (props: ContactListItemProps) => {
       //  1. Create a new Chat Room
       const newChatRoomData = await API.graphql(
         graphqlOperation(createChatRoom, {
-          input: {},
+          input: {
+            lastMessageID: '6336a416-ee9e-42d2-831d-edcbd055fe0f'
+          },
         }),
       );
 
