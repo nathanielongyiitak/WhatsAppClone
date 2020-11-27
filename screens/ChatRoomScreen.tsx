@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Text, ImageBackground } from 'react-native';
+import {
+  FlatList,
+  Text,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 
 import { useRoute } from '@react-navigation/native';
 import { API, graphqlOperation, Auth } from 'aws-amplify';
@@ -68,7 +74,6 @@ const ChatRoomScreen = () => {
         renderItem={({ item }) => <ChatMessage myId={myId} message={item} />}
         inverted
       />
-
       <InputBox chatRoomID={route.params.id} />
     </ImageBackground>
   );
